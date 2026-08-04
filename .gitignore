@@ -54,3 +54,6 @@ next-env.d.ts
 .claude/skills/
 .claude/.proven-config-version
 skills-lock.json
+
+# vercel
+.vercel

@@ -10,11 +10,16 @@ Prisma 7 + SQLite. Внешних UI- и чарт-библиотек нет.
 
 ```bash
 npm install
-cp .env.example .env
+npx vercel link          # привязка к проекту saint-made
+npx vercel env pull      # заберёт DATABASE_URL (Neon) в .env.local
 npx prisma migrate deploy
-npm run seed
+npm run seed             # заполнит базу тестовыми данными
 npm run dev
 ```
+
+База — Postgres (Neon) в облаке, одна и та же для локальной разработки и
+продакшена. Локальные логин/пароль админа и `SESSION_SECRET` лежат в `.env`
+(см. `.env.example`).
 
 Сайт — http://localhost:3000, админка — http://localhost:3000/admin.
 
@@ -92,10 +97,37 @@ public/img      изображения из макета (webp), public/icons �
 
 ## Деплой
 
-1. Задайте `ADMIN_LOGIN`, `ADMIN_PASSWORD` и случайный `SESSION_SECRET`.
-2. Для managed-хостинга (например, Vercel) SQLite не подойдёт: переключите
-   `datasource` в `prisma/schema.prisma` на `postgresql`, замените адаптер в
-   `lib/prisma.ts` на `@prisma/adapter-pg` и выполните `prisma migrate deploy`.
-3. Загрузка фото в админке пишет файлы в `public/uploads` — это работает
-   локально и на VPS. На хостинге с read-only ФС подключите объектное
-   хранилище и замените тело `uploadImage` в `app/admin/actions.ts`.
+Проект развёрнут на Vercel (`saint-made`), база — Neon Postgres из Vercel
+Marketplace. Сборка сама накатывает миграции: `prisma generate && prisma
+migrate deploy && next build`.
+
+```bash
+npx vercel deploy --prod
+```
+
+Переменные окружения в проекте Vercel:
+
+| Переменная | Откуда |
+|---|---|
+| `DATABASE_URL` | подставляет интеграция Neon |
+| `SESSION_SECRET` | случайная строка, `openssl rand -hex 32` |
+| `ADMIN_LOGIN`, `ADMIN_PASSWORD` | задаются вручную |
+| `BLOB_READ_WRITE_TOKEN` | появляется при подключении Vercel Blob |
+
+Пароль админа задаётся так:
+
+```bash
+printf 'ваш-пароль' | npx vercel env add ADMIN_PASSWORD production --force
+npx vercel deploy --prod
+```
+
+Пока `ADMIN_PASSWORD` не задан, в продакшене вход в админку не работает
+вообще — дефолтные `admin/saintmade` намеренно отключены (`lib/auth.ts`).
+
+Загрузка фото в админке: если задан `BLOB_READ_WRITE_TOKEN`, файлы уходят
+в Vercel Blob; без него — в `public/uploads` (только для локальной работы,
+на Vercel файловая система только для чтения).
+
+Почему не SQLite: на Vercel код исполняется в serverless-функциях с
+read-only файловой системой, и каждый запрос может попасть на другой
+экземпляр — файл базы негде хранить и нечем шарить между инстансами.
