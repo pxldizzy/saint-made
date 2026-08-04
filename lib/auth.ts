@@ -37,6 +37,12 @@ export function safeEqual(a: string, b: string) {
 }
 
 export function checkCredentials(login: string, password: string) {
+  // In production the dev defaults must never work: without explicit
+  // ADMIN_PASSWORD and SESSION_SECRET there is simply no admin login.
+  if (process.env.NODE_ENV === "production") {
+    if (!process.env.ADMIN_PASSWORD || !process.env.SESSION_SECRET) return false;
+  }
+
   const expectedLogin = process.env.ADMIN_LOGIN ?? "admin";
   const expectedPassword = process.env.ADMIN_PASSWORD ?? "saintmade";
   // Both comparisons always run so timing does not reveal which one failed.

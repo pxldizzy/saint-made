@@ -55,6 +55,17 @@ async function run() {
   assert.equal(checkCredentials("admin", "wrong"), false);
   assert.equal(checkCredentials("root", "s3cret"), false);
 
+  // Production must not fall back to the dev defaults.
+  const env = process.env.NODE_ENV;
+  (process.env as Record<string, string | undefined>).NODE_ENV = "production";
+  delete process.env.ADMIN_PASSWORD;
+  assert.equal(
+    checkCredentials("admin", "saintmade"),
+    false,
+    "no ADMIN_PASSWORD in production means no admin login",
+  );
+  (process.env as Record<string, string | undefined>).NODE_ENV = env;
+
   // --- prices are stored in kopecks ---
   assert.equal(formatPrice(1_200_000), `12${nbsp}000 ₽`);
   assert.equal(formatPrice(0), "0 ₽");
