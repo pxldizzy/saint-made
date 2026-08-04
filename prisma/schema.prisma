@@ -9,12 +9,29 @@ datasource db {
 
 /// Site accounts. The password is stored as a scrypt hash (see lib/password.ts).
 model User {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   name         String
-  email        String   @unique
-  phone        String   @default("")
+  email        String    @unique
+  phone        String    @default("")
   passwordHash String
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
+  addresses    Address[]
+  orders       Order[]
+}
+
+/// Saved delivery addresses; the default one prefills checkout.
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String   @default("")
+  city      String
+  street    String
+  apartment String   @default("")
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 /// Two levels: root categories are the header sections (МУЖСКОЕ / ЖЕНСКОЕ /
@@ -81,6 +98,9 @@ model Variant {
 /// status: new | processing | shipped | delivered | cancelled
 model Order {
   id        Int         @id @default(autoincrement())
+  /// Set when the buyer was signed in; guest orders are matched by e-mail.
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   name      String
   phone     String
   email     String      @default("")
@@ -94,6 +114,7 @@ model Order {
 
   @@index([status])
   @@index([createdAt])
+  @@index([userId])
 }
 
 /// Title/price are snapshotted so an order stays readable if the product changes.

@@ -1,91 +1,104 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import OrderCard from "@/components/account/OrderCard";
+import { getUserOrders } from "@/lib/account";
 import { getCurrentUser } from "@/lib/auth-server";
 import { formatDate, formatPrice } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
-import { STATUS_LABELS } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Личный кабинет" };
 
-export default async function AccountPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/account");
+export default async function AccountOverviewPage() {
+  const user = (await getCurrentUser())!;
 
-  // Orders are matched by e-mail: checkout does not require an account.
-  const orders = await prisma.order.findMany({
-    where: { email: user.email },
-    orderBy: { createdAt: "desc" },
-    include: { items: true },
-  });
+  const [orders, defaultAddress] = await Promise.all([
+    getUserOrders(user),
+    prisma.address.findFirst({ where: { userId: user.id, isDefault: true } }),
+  ]);
 
-  const rows = [
-    { label: "Имя", value: user.name },
-    { label: "E-mail", value: user.email },
-    { label: "Телефон", value: user.phone || "—" },
+  const paid = orders.filter((o) => o.status !== "cancelled");
+  const active = orders.filter(
+    (o) => o.status === "new" || o.status === "processing" || o.status === "shipped",
+  );
+  const spent = paid.reduce((sum, o) => sum + o.total, 0);
+
+  const tiles = [
+    { label: "Всего заказов", value: String(orders.length) },
+    { label: "В работе", value: String(active.length) },
+    { label: "Куплено на", value: formatPrice(spent) },
     { label: "С нами с", value: formatDate(user.createdAt) },
   ];
 
   return (
-    <div className="container-sm pt-[120px]">
-      <div className="flex flex-wrap items-baseline justify-between gap-[20px]">
-        <h1 className="text-h2 uppercase">Личный кабинет</h1>
-        <form action="/api/auth/logout" method="post">
-          <button
-            type="submit"
-            className="link-underline text-[16px] leading-[21.9px] font-bold text-ash uppercase transition-colors duration-300 hover:text-ink"
-          >
-            Выйти
-          </button>
-        </form>
-      </div>
+    <div>
+      <h2 className="text-h3 uppercase">Здравствуйте, {user.name.split(" ")[0]}</h2>
 
-      <dl className="mt-[60px] grid gap-[30px] sm:grid-cols-2 xl:grid-cols-4">
-        {rows.map((row) => (
-          <div key={row.label} className="border-2 border-graphite p-[24px]">
-            <dt className="text-body text-ash uppercase">{row.label}</dt>
-            <dd className="mt-[8px] text-[20px] leading-[27.3px] font-bold break-words">
-              {row.value}
+      <dl className="mt-[30px] grid gap-[20px] sm:grid-cols-2 xl:grid-cols-4">
+        {tiles.map((tile) => (
+          <div key={tile.label} className="border-2 border-graphite p-[20px]">
+            <dt className="text-[14px] leading-[19.1px] text-ash uppercase">
+              {tile.label}
+            </dt>
+            <dd className="mt-[8px] text-[24px] leading-[32.8px] font-bold">
+              {tile.value}
             </dd>
           </div>
         ))}
       </dl>
 
-      <h2 className="text-column-title mt-[60px] text-graphite">Мои заказы</h2>
+      <section className="mt-[50px]">
+        <div className="flex flex-wrap items-baseline justify-between gap-[16px]">
+          <h3 className="text-column-title text-graphite">
+            {active.length > 0 ? "Текущий заказ" : "Последний заказ"}
+          </h3>
+          {orders.length > 1 && (
+            <Link
+              href="/account/orders"
+              className="link-underline text-body font-bold uppercase"
+            >
+              Все заказы
+            </Link>
+          )}
+        </div>
 
-      {orders.length === 0 ? (
-        <div className="mt-[30px]">
-          <p className="text-body text-ash uppercase">
-            Здесь появятся заказы, оформленные на {user.email}.
-          </p>
-          <Link href="/catalog" className="btn-base btn-solid mt-[30px]">
-            В каталог
+        {orders.length === 0 ? (
+          <div className="mt-[20px] border-2 border-line p-[30px]">
+            <p className="text-body text-ash uppercase">
+              Заказов пока нет. Всё, что вы купите, появится здесь — со статусом
+              доставки и составом.
+            </p>
+            <Link href="/catalog" className="btn-base btn-solid mt-[24px]">
+              В каталог
+            </Link>
+          </div>
+        ) : (
+          <div className="mt-[20px]">
+            <OrderCard order={active[0] ?? orders[0]} />
+          </div>
+        )}
+      </section>
+
+      <section className="mt-[50px]">
+        <div className="flex flex-wrap items-baseline justify-between gap-[16px]">
+          <h3 className="text-column-title text-graphite">Адрес доставки</h3>
+          <Link
+            href="/account/addresses"
+            className="link-underline text-body font-bold uppercase"
+          >
+            {defaultAddress ? "Изменить" : "Добавить"}
           </Link>
         </div>
-      ) : (
-        <ul className="mt-[30px] flex flex-col gap-[20px]">
-          {orders.map((order) => (
-            <li key={order.id} className="border-2 border-graphite p-[24px]">
-              <div className="flex flex-wrap items-baseline justify-between gap-[20px]">
-                <p className="text-[20px] leading-[27.3px] font-bold uppercase">
-                  Заказ №{order.id} · {formatDate(order.createdAt)}
-                </p>
-                <p className="text-body font-bold uppercase">
-                  {STATUS_LABELS[order.status] ?? order.status} ·{" "}
-                  {formatPrice(order.total)}
-                </p>
-              </div>
-              <ul className="mt-[16px] flex flex-col gap-[8px]">
-                {order.items.map((item) => (
-                  <li key={item.id} className="text-body text-ash uppercase">
-                    {item.title} · {item.color} · {item.size} × {item.qty}
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ul>
-      )}
+        <p className="text-body mt-[20px] uppercase">
+          {defaultAddress
+            ? [
+                defaultAddress.city,
+                defaultAddress.street,
+                defaultAddress.apartment && `кв. ${defaultAddress.apartment}`,
+              ]
+                .filter(Boolean)
+                .join(", ")
+            : "Не указан — добавьте, чтобы не вводить его при каждом заказе."}
+        </p>
+      </section>
     </div>
   );
 }

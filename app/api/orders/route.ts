@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 
 type IncomingLine = {
@@ -99,6 +100,9 @@ export async function POST(request: Request) {
 
   const total = items.reduce((sum, it) => sum + it.product.price * it.qty, 0);
 
+  // Link the order to the account when the buyer is signed in.
+  const user = await getCurrentUser();
+
   const order = await prisma.$transaction(async (tx) => {
     for (const it of items) {
       await tx.variant.update({
@@ -108,6 +112,7 @@ export async function POST(request: Request) {
     }
     return tx.order.create({
       data: {
+        ...(user ? { user: { connect: { id: user.id } } } : {}),
         name,
         phone,
         email,

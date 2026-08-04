@@ -183,7 +183,8 @@ async function main() {
       data: {
         ...customer,
         comment: i % 6 === 0 ? "Позвонить за час до доставки" : "",
-        status: STATUSES[i % STATUSES.length],
+        // Offset so a customer does not always land on the same status.
+        status: STATUSES[(i + Math.floor(i / STATUSES.length)) % STATUSES.length],
         total: items.reduce((sum, it) => sum + it.price * it.qty, 0),
         createdAt,
         updatedAt: createdAt,
