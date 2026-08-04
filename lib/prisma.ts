@@ -1,4 +1,4 @@
-import { PrismaNeon } from "@prisma/adapter-neon";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/app/generated/prisma/client";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
@@ -10,7 +10,7 @@ function createClient() {
       "DATABASE_URL не задан. Локально: vercel env pull, либо укажите строку подключения Postgres в .env",
     );
   }
-  return new PrismaClient({ adapter: new PrismaNeon({ connectionString }) });
+  return new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 }
 
 export const prisma = globalForPrisma.prisma ?? createClient();

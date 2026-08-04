@@ -1,4 +1,4 @@
-import { PrismaNeon } from "@prisma/adapter-neon";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../app/generated/prisma/client";
 import { hashPassword } from "../lib/password";
 
@@ -6,7 +6,7 @@ const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL не задан");
 
 const prisma = new PrismaClient({
-  adapter: new PrismaNeon({ connectionString }),
+  adapter: new PrismaPg({ connectionString }),
 });
 
 const SECTIONS = [

@@ -54,19 +54,27 @@ export default function CatalogControls({ options }: { options: FilterOptions })
 
   const isOn = (key: string, value: string) => params.getAll(key).includes(value);
 
+  /** Checkbox + label as one unbreakable chip — chips wrap, text never does. */
   const checkbox = (key: string, value: string, label: string) => (
-    <label key={value} className="flex cursor-pointer items-center gap-[8px]">
+    <label
+      key={value}
+      className="flex shrink-0 cursor-pointer items-center gap-[8px] whitespace-nowrap"
+    >
       <input
         type="checkbox"
         checked={isOn(key, value)}
         onChange={() => toggleMulti(key, value)}
-        className="h-[25px] w-[25px] shrink-0 appearance-none border-2 border-graphite bg-paper transition-colors duration-300 checked:bg-graphite"
+        className="h-[20px] w-[20px] shrink-0 appearance-none border-2 border-graphite bg-paper transition-colors duration-300 checked:bg-graphite xl:h-[25px] xl:w-[25px]"
       />
-      <span className="text-[20px] leading-[27.3px] font-semibold text-graphite uppercase">
+      <span className="text-[clamp(14px,1.04vw,20px)] leading-[1.366] font-semibold text-graphite uppercase">
         {label}
       </span>
     </label>
   );
+
+  const legendClass =
+    "mb-[20px] text-[clamp(14px,1.04vw,20px)] leading-[1.366] font-extrabold text-graphite uppercase";
+  const chipsClass = "flex flex-wrap gap-x-[30px] gap-y-[12px]";
 
   return (
     <div>
@@ -134,36 +142,38 @@ export default function CatalogControls({ options }: { options: FilterOptions })
         }`}
       >
         <div className="overflow-hidden">
-          <div className="grid gap-x-[30px] gap-y-[40px] pt-[30px] pb-[20px] lg:grid-cols-[853fr_310fr_146fr_264fr]">
-            <fieldset>
-              <legend className="mb-[20px] text-[20px] leading-[27.3px] font-extrabold text-graphite uppercase">
+          {/* Macket columns: 853 / 310 / 146 / 270 at x = 75 / 978 / 1338 / 1575 —
+              the gutters are folded into the track widths as padding. */}
+          <div className="grid gap-x-[50px] gap-y-[40px] pt-[30px] pb-[20px] xl:grid-cols-[minmax(0,903fr)_minmax(0,360fr)_minmax(0,237fr)_minmax(0,270fr)] xl:gap-x-0">
+            <fieldset className="xl:pr-[50px]">
+              <legend className={legendClass}>
                 По типу
               </legend>
-              <div className="grid grid-cols-2 gap-x-[30px] gap-y-[10px] sm:grid-cols-3 xl:grid-cols-5">
+              <div className={chipsClass}>
                 {options.types.map((t) => checkbox("type", t.slug, t.name))}
               </div>
             </fieldset>
 
-            <fieldset>
-              <legend className="mb-[20px] text-[20px] leading-[27.3px] font-extrabold text-graphite uppercase">
+            <fieldset className="xl:pr-[50px]">
+              <legend className={legendClass}>
                 По цвету
               </legend>
-              <div className="grid grid-cols-2 gap-x-[30px] gap-y-[10px]">
+              <div className={chipsClass}>
                 {options.colors.map((c) => checkbox("color", c.name, c.name))}
               </div>
             </fieldset>
 
-            <fieldset>
-              <legend className="mb-[20px] text-[20px] leading-[27.3px] font-extrabold text-graphite uppercase">
+            <fieldset className="xl:pr-[91px]">
+              <legend className={legendClass}>
                 По размеру
               </legend>
-              <div className="grid grid-cols-2 gap-x-[30px] gap-y-[10px]">
+              <div className={chipsClass}>
                 {options.sizes.map((s) => checkbox("size", s, s))}
               </div>
             </fieldset>
 
             <fieldset>
-              <legend className="mb-[20px] text-[20px] leading-[27.3px] font-extrabold text-graphite uppercase">
+              <legend className={legendClass}>
                 По стоимости
               </legend>
               <div className="flex flex-wrap items-center gap-[30px]">
@@ -181,7 +191,7 @@ export default function CatalogControls({ options }: { options: FilterOptions })
                           : p.delete("min"),
                       )
                     }
-                    className="h-[42px] w-[120px] border-2 border-graphite px-[10px] text-[16px] leading-[21.9px] font-semibold text-graphite focus:outline-none"
+                    className="h-[42px] w-[110px] border-2 border-graphite px-[10px] text-[16px] leading-[21.9px] font-semibold text-graphite focus:border-ink focus:outline-none xl:w-[120px]"
                   />
                 </label>
                 <label className="flex flex-col">
@@ -198,7 +208,7 @@ export default function CatalogControls({ options }: { options: FilterOptions })
                           : p.delete("max"),
                       )
                     }
-                    className="h-[42px] w-[120px] border-2 border-graphite px-[10px] text-[16px] leading-[21.9px] font-semibold text-graphite focus:outline-none"
+                    className="h-[42px] w-[110px] border-2 border-graphite px-[10px] text-[16px] leading-[21.9px] font-semibold text-graphite focus:border-ink focus:outline-none xl:w-[120px]"
                   />
                 </label>
               </div>
