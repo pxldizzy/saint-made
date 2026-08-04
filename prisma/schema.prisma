@@ -11,8 +11,9 @@ datasource db {
 model User {
   id           String    @id @default(cuid())
   name         String
-  email        String    @unique
-  phone        String    @default("")
+  /// Either e-mail or phone identifies the account; at least one is required.
+  email        String?   @unique
+  phone        String?   @unique
   passwordHash String
   createdAt    DateTime  @default(now())
   addresses    Address[]

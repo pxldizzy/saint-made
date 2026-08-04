@@ -29,12 +29,12 @@ function LoginForm() {
       <h1 className="text-h2 text-center text-paper uppercase">Войти</h1>
 
       <label className="mt-[112px] block">
-        <span className="sr-only">Логин или e-mail</span>
+        <span className="sr-only">E-mail или телефон</span>
         <input
           name="login"
           required
           autoComplete="username"
-          placeholder="Введите e-mail"
+          placeholder="E-mail или телефон"
           className={inputClass}
         />
       </label>

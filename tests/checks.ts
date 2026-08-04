@@ -13,6 +13,7 @@ import {
   safeEqual,
 } from "../lib/auth";
 import { formatPrice } from "../lib/format";
+import { normalizePhone, phoneInputValue } from "../lib/phone";
 import { colorsOf, sizesOf, type ProductCardData } from "../lib/product";
 
 const nbsp = String.fromCharCode(160);
@@ -92,6 +93,15 @@ async function run() {
     { name: "Черный", hex: "#1c1c1c" },
     { name: "Белый", hex: "#ffffff" },
   ]);
+
+  // --- phone always normalises to +7XXXXXXXXXX ---
+  assert.equal(normalizePhone("+7 916 240-11-08"), "+79162401108");
+  assert.equal(normalizePhone("8 916 240 11 08"), "+79162401108", "8 → +7");
+  assert.equal(normalizePhone("9162401108"), "+79162401108", "без кода страны");
+  assert.equal(normalizePhone("+7 916 240-11-0"), null, "мало цифр");
+  assert.equal(normalizePhone("+1 415 555 0100"), null, "не российский формат");
+  assert.equal(phoneInputValue("89162401108"), "+7 916 240-11-08");
+  assert.equal(phoneInputValue(""), "+7");
 
   console.log("all checks passed");
 }

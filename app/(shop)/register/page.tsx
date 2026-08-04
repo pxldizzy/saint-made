@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
+import PhoneInput from "@/components/PhoneInput";
 import { registerAction, type FormState } from "../login/actions";
 
 const INITIAL: FormState = { error: "" };
@@ -9,15 +10,10 @@ const INITIAL: FormState = { error: "" };
 const inputClass =
   "h-[71px] w-full border-2 border-paper bg-transparent px-[24px] text-center text-[16px] leading-[21.9px] font-semibold uppercase text-paper placeholder:text-steel focus:outline-none focus:shadow-[0_0_15px_rgba(255,255,255,0.25)] transition-shadow duration-300";
 
-const FIELDS = [
-  { name: "name", type: "text", placeholder: "Имя и фамилия", label: "Имя и фамилия", autoComplete: "name" },
-  { name: "email", type: "email", placeholder: "Введите e-mail", label: "E-mail", autoComplete: "email" },
-  { name: "phone", type: "tel", placeholder: "+7 900 000-00-00", label: "Телефон", autoComplete: "tel" },
-  { name: "password", type: "password", placeholder: "Пароль (от 8 символов)", label: "Пароль", autoComplete: "new-password" },
-  { name: "confirm", type: "password", placeholder: "Повторите пароль", label: "Повторите пароль", autoComplete: "new-password" },
-];
-
-/** Same dark panel as the macket's MAIN LOGIN, with the fields registration needs. */
+/**
+ * Same dark panel as the macket's MAIN LOGIN. An account needs a name, a
+ * password and at least one contact — e-mail or phone.
+ */
 export default function RegisterPage() {
   const [state, formAction, pending] = useActionState(registerAction, INITIAL);
 
@@ -31,20 +27,61 @@ export default function RegisterPage() {
           Регистрация
         </h1>
 
-        <div className="mt-[60px] flex flex-col gap-[20px]">
-          {FIELDS.map((field) => (
-            <label key={field.name} className="block">
-              <span className="sr-only">{field.label}</span>
-              <input
-                name={field.name}
-                type={field.type}
-                required
-                autoComplete={field.autoComplete}
-                placeholder={field.placeholder}
-                className={inputClass}
-              />
-            </label>
-          ))}
+        <div className="mt-[50px] flex flex-col gap-[20px]">
+          <label className="block">
+            <span className="sr-only">Имя и фамилия</span>
+            <input
+              name="name"
+              required
+              autoComplete="name"
+              placeholder="Имя и фамилия"
+              className={inputClass}
+            />
+          </label>
+
+          <p className="text-center text-[14px] leading-[19.1px] font-semibold text-muted uppercase">
+            Укажите e-mail или телефон — по нему вы будете входить
+          </p>
+
+          <label className="block">
+            <span className="sr-only">E-mail</span>
+            <input
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="Введите e-mail"
+              className={inputClass}
+            />
+          </label>
+
+          <label className="block">
+            <span className="sr-only">Телефон</span>
+            <PhoneInput className={inputClass} />
+          </label>
+
+          <label className="block">
+            <span className="sr-only">Пароль</span>
+            <input
+              name="password"
+              type="password"
+              required
+              autoComplete="new-password"
+              placeholder="Пароль (от 8 символов)"
+              className={inputClass}
+            />
+          </label>
+
+          <label className="block">
+            <span className="sr-only">Повторите пароль</span>
+            <input
+              name="confirm"
+              type="password"
+              required
+              autoComplete="new-password"
+              placeholder="Повторите пароль"
+              className={inputClass}
+            />
+          </label>
         </div>
 
         {state.error && (

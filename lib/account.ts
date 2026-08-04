@@ -4,8 +4,10 @@ import { prisma } from "./prisma";
  * Orders of a signed-in visitor: those placed while logged in plus guest
  * orders made with the same e-mail.
  */
-export function ordersOf(user: { id: string; email: string }) {
-  return { OR: [{ userId: user.id }, { email: user.email }] };
+export function ordersOf(user: { id: string; email: string | null }) {
+  return {
+    OR: [{ userId: user.id }, ...(user.email ? [{ email: user.email }] : [])],
+  };
 }
 
 export const orderCardInclude = {
@@ -21,7 +23,7 @@ export const orderCardInclude = {
   },
 } as const;
 
-export async function getUserOrders(user: { id: string; email: string }) {
+export async function getUserOrders(user: { id: string; email: string | null }) {
   return prisma.order.findMany({
     where: ordersOf(user),
     orderBy: { createdAt: "desc" },

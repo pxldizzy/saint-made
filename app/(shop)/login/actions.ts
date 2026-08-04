@@ -11,6 +11,7 @@ import {
   userSubject,
 } from "@/lib/auth";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { looksLikePhone, normalizePhone } from "@/lib/phone";
 import { prisma } from "@/lib/prisma";
 
 export type FormState = { error: string };
@@ -36,7 +37,7 @@ async function startSession(subject: string) {
  * with JS disabled — a native GET submit would leak the password into the URL.
  *
  * The admin credentials from .env open the admin panel; anything else is
- * matched against the site accounts created via registration.
+ * looked up among site accounts by e-mail or by phone.
  */
 export async function loginAction(
   _prev: FormState,
@@ -53,8 +54,9 @@ export async function loginAction(
     redirect(safeNext(next, "/admin"));
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: login.toLowerCase() },
+  const phone = looksLikePhone(login) ? normalizePhone(login) : null;
+  const user = await prisma.user.findFirst({
+    where: phone ? { phone } : { email: login.toLowerCase() },
   });
 
   if (user && (await verifyPassword(password, user.passwordHash))) {
@@ -67,24 +69,53 @@ export async function loginAction(
   return { error: "Неверный логин или пароль" };
 }
 
+/** Registration needs a name, a password and at least one contact. */
 export async function registerAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const name = str(formData, "name", 120);
-  const email = str(formData, "email", 160).toLowerCase();
-  const phone = str(formData, "phone", 40);
+  const emailRaw = str(formData, "email", 160).toLowerCase();
+  const phoneRaw = str(formData, "phone", 40);
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
 
   if (name.length < 2) return { error: "Укажите имя" };
-  if (!EMAIL_RE.test(email)) return { error: "Некорректный e-mail" };
-  if (phone.replace(/\D/g, "").length < 10) return { error: "Укажите телефон" };
+
+  const hasPhoneInput = phoneRaw.replace(/\D/g, "").length > 1;
+  if (!emailRaw && !hasPhoneInput) {
+    return { error: "Укажите e-mail или телефон" };
+  }
+  if (emailRaw && !EMAIL_RE.test(emailRaw)) {
+    return { error: "Некорректный e-mail" };
+  }
+
+  const phone = hasPhoneInput ? normalizePhone(phoneRaw) : null;
+  if (hasPhoneInput && !phone) {
+    return { error: "Телефон в формате +7 900 000-00-00" };
+  }
+
   if (password.length < 8) return { error: "Пароль — минимум 8 символов" };
   if (password !== confirm) return { error: "Пароли не совпадают" };
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) return { error: "Такой e-mail уже зарегистрирован" };
+  const email = emailRaw || null;
+
+  const taken = await prisma.user.findFirst({
+    where: {
+      OR: [
+        ...(email ? [{ email }] : []),
+        ...(phone ? [{ phone }] : []),
+      ],
+    },
+  });
+  if (taken) {
+    return {
+      error:
+        taken.email === email
+          ? "Такой e-mail уже зарегистрирован"
+          : "Такой телефон уже зарегистрирован",
+    };
+  }
 
   const user = await prisma.user.create({
     data: { name, email, phone, passwordHash: await hashPassword(password) },

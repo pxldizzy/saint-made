@@ -1,6 +1,7 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../app/generated/prisma/client";
 import { hashPassword } from "../lib/password";
+import { normalizePhone } from "../lib/phone";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL не задан");
@@ -199,7 +200,7 @@ async function main() {
     data: {
       name: CUSTOMERS[0].name,
       email: CUSTOMERS[0].email,
-      phone: CUSTOMERS[0].phone,
+      phone: normalizePhone(CUSTOMERS[0].phone),
       passwordHash: await hashPassword("demo12345"),
     },
   });

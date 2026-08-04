@@ -16,7 +16,11 @@ export default async function AccountProfilePage() {
 
       <div className="mt-[30px]">
         <ProfileForms
-          user={{ name: user.name, email: user.email, phone: user.phone }}
+          user={{
+            name: user.name,
+            email: user.email ?? "",
+            phone: user.phone ?? "",
+          }}
         />
       </div>
     </div>

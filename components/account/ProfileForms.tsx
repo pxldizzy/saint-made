@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import PhoneInput from "@/components/PhoneInput";
 import {
   changePassword,
   updateProfile,
@@ -55,20 +56,16 @@ export default function ProfileForms({
               name="email"
               type="email"
               defaultValue={user.email}
-              required
               className={field}
             />
           </label>
           <label className="flex flex-col gap-[8px]">
             <span className={label}>Телефон</span>
-            <input
-              name="phone"
-              type="tel"
-              defaultValue={user.phone}
-              required
-              className={field}
-            />
+            <PhoneInput defaultValue={user.phone} className={field} />
           </label>
+          <p className="text-[14px] leading-[19.1px] text-ash uppercase">
+            Вход по e-mail или телефону — оставьте хотя бы один контакт.
+          </p>
 
           <Message state={profileState} />
 

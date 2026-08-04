@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth-server";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { normalizePhone } from "@/lib/phone";
 import { prisma } from "@/lib/prisma";
 
 export type AccountState = { error: string; ok?: string };
@@ -27,16 +28,39 @@ export async function updateProfile(
   const user = await requireUser();
 
   const name = str(formData, "name", 120);
-  const email = str(formData, "email", 160).toLowerCase();
-  const phone = str(formData, "phone", 40);
+  const emailRaw = str(formData, "email", 160).toLowerCase();
+  const phoneRaw = str(formData, "phone", 40);
 
   if (name.length < 2) return { error: "Укажите имя" };
-  if (!EMAIL_RE.test(email)) return { error: "Некорректный e-mail" };
-  if (phone.replace(/\D/g, "").length < 10) return { error: "Укажите телефон" };
 
-  if (email !== user.email) {
-    const taken = await prisma.user.findUnique({ where: { email } });
-    if (taken) return { error: "Этот e-mail уже занят" };
+  const hasPhoneInput = phoneRaw.replace(/\D/g, "").length > 1;
+  if (!emailRaw && !hasPhoneInput) {
+    return { error: "Оставьте e-mail или телефон — по нему вы входите" };
+  }
+  if (emailRaw && !EMAIL_RE.test(emailRaw)) {
+    return { error: "Некорректный e-mail" };
+  }
+
+  const phone = hasPhoneInput ? normalizePhone(phoneRaw) : null;
+  if (hasPhoneInput && !phone) {
+    return { error: "Телефон в формате +7 900 000-00-00" };
+  }
+
+  const email = emailRaw || null;
+
+  const taken = await prisma.user.findFirst({
+    where: {
+      id: { not: user.id },
+      OR: [...(email ? [{ email }] : []), ...(phone ? [{ phone }] : [])],
+    },
+  });
+  if (taken) {
+    return {
+      error:
+        taken.email === email
+          ? "Этот e-mail уже занят"
+          : "Этот телефон уже занят",
+    };
   }
 
   await prisma.user.update({

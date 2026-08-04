@@ -25,7 +25,11 @@ export default async function CheckoutPage() {
 
   return (
     <CheckoutForm
-      user={user ? { name: user.name, email: user.email, phone: user.phone } : null}
+      user={
+        user
+          ? { name: user.name, email: user.email ?? "", phone: user.phone ?? "" }
+          : null
+      }
       addresses={addresses}
     />
   );
