@@ -1,26 +1,204 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Design tokens taken from the Figma file (frame COLOR + measured styles). */
+@theme {
+  --color-ink: #000000;
+  --color-graphite: #1c1c1c;
+  --color-slate: #3e3e3e;
+  --color-steel: #454545;
+  --color-ash: #5e5e5e;
+  --color-muted: #8f8f8f;
+  --color-line: #bfbfbf;
+  --color-paper: #ffffff;
+
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+
+  /* macket: 1920 wide, 75px side margins, 4 columns of 420 with 30px gutters */
+  --spacing-gutter: 30px;
+  --container-max: 1770px;
+  --container-pad: 75px;
+
+  --ease-brand: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@utility container-sm {
+  width: min(var(--container-max), 100vw - 2 * var(--container-pad));
+  margin-inline: auto;
+
+  @media (width < 1280px) {
+    width: min(var(--container-max), 100vw - 80px);
+  }
+  @media (width < 768px) {
+    width: min(var(--container-max), 100vw - 40px);
+  }
+}
+
+/* Text styles measured in the macket: Manrope, line-height 137% */
+@utility text-nav {
+  font-size: 20px;
+  line-height: 27.3px;
+  font-weight: 500;
+}
+@utility text-body {
+  font-size: 16px;
+  line-height: 21.9px;
+}
+@utility text-h1 {
+  font-size: clamp(32px, 3.34vw, 64px);
+  line-height: 1.366;
+  font-weight: 700;
+}
+@utility text-h2 {
+  font-size: clamp(26px, 2.09vw, 40px);
+  line-height: 1.366;
+  font-weight: 700;
+}
+@utility text-h3 {
+  font-size: clamp(22px, 1.88vw, 36px);
+  line-height: 1.366;
+  font-weight: 500;
+}
+@utility text-lead {
+  font-size: clamp(24px, 2.5vw, 48px);
+  line-height: 1.366;
+  font-weight: 600;
+}
+@utility text-column-title {
+  font-size: clamp(20px, 1.25vw, 24px);
+  line-height: 1.366;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Buttons: macket uses square 71px-tall blocks, no radius */
+@utility btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 71px;
+  padding-inline: 32px;
+  font-size: 16px;
+  line-height: 21.9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  transition:
+    background-color 0.3s var(--ease-brand),
+    color 0.3s var(--ease-brand),
+    border-color 0.3s var(--ease-brand),
+    opacity 0.3s var(--ease-brand);
+  cursor: pointer;
+}
+@utility btn-solid {
+  background: var(--color-graphite);
+  color: var(--color-paper);
+
+  &:hover {
+    background: var(--color-ink);
+  }
+  &:disabled {
+    background: var(--color-muted);
+    cursor: not-allowed;
+  }
+}
+@utility btn-outline {
+  background: var(--color-paper);
+  color: var(--color-graphite);
+  border: 2px solid var(--color-graphite);
+
+  &:hover {
+    background: var(--color-graphite);
+    color: var(--color-paper);
+  }
+}
+
+@utility field {
+  height: 71px;
+  width: 100%;
+  border: 2px solid var(--color-graphite);
+  background: var(--color-paper);
+  padding-inline: 24px;
+  font-size: 16px;
+  line-height: 21.9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-graphite);
+  transition: border-color 0.3s var(--ease-brand);
+
+  &::placeholder {
+    color: var(--color-ash);
+  }
+  &:focus {
+    outline: none;
+    border-color: var(--color-ink);
+  }
+}
+
+/* Underline that grows on hover — used for nav links and text actions */
+@utility link-underline {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 100%;
+    height: 2px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.35s var(--ease-brand);
+  }
+  &:hover::after,
+  &[data-active="true"]::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+/* Scroll reveal — element starts shifted, .is-visible is set by IntersectionObserver */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s var(--ease-brand),
+    transform 0.7s var(--ease-brand);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
 }

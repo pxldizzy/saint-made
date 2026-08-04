@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/app/generated/prisma
+
+# uploads from the admin panel
+/public/uploads
+
+# local sqlite database (recreate with: prisma migrate deploy && npm run seed)
+*.db
+*.db-journal
+
+# agent tooling, not part of the project
+.claude-flow/
+.claude/skills/
+.claude/.proven-config-version
+skills-lock.json

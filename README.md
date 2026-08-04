@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SAINT MADE
 
-## Getting Started
+Интернет-магазин одежды по макету Figma «SAINT MADE» + закрытая админ-панель
+с управлением товарами, заказами и статистикой.
 
-First, run the development server:
+Стек: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4,
+Prisma 7 + SQLite. Внешних UI- и чарт-библиотек нет.
+
+## Запуск
 
 ```bash
+npm install
+cp .env.example .env
+npx prisma migrate deploy
+npm run seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Сайт — http://localhost:3000, админка — http://localhost:3000/admin.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Вход общий, на `/login`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- админ — логин и пароль из `.env` (по умолчанию `admin` / `saintmade`) → `/admin`;
+- покупатель — e-mail и пароль аккаунта → `/account`. Демо-аккаунт из сида:
+  `anna.k@example.com` / `demo12345`, к нему привязаны тестовые заказы.
 
-## Learn More
+Регистрация — `/register` (имя, e-mail, телефон, пароль). Пароль хранится
+как scrypt-хеш, сессия — подписанная HttpOnly-кука на 8 часов.
 
-To learn more about Next.js, take a look at the following resources:
+Скрипты: `npm run dev` · `build` · `start` · `seed` · `test` · `lint`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Что где
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/(shop)      витрина: главная, каталог, карточка товара, корзина,
+                оформление, lookbook, о бренде, контакты, избранное,
+                вход, регистрация, личный кабинет
+app/admin       админка: дашборд, товары, категории, заказы
+app/api         orders (приём заказа), products (для избранного), auth
+components      Header/Footer, ProductCard, галерея, фильтры, формы
+lib             prisma, cart, wishlist, auth, stats, форматирование
+prisma          схема, миграции, сид
+public/img      изображения из макета (webp), public/icons — иконки (svg)
+```
 
-## Deploy on Vercel
+## Соответствие макету
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Значения взяты из Figma-файла через REST API, а не на глаз:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Сетка: контейнер 1770 px, поля 75, 4 колонки по 420 с гаттером 30
+  (в 6-колоночном виде каталога — 270). На 1920 px совпадает пиксель в пиксель.
+- Типографика: Manrope 400–800, кегли 16/20/24/36/40/48/64, интерлиньяж 137 %.
+- Палитра из фрейма COLOR: `#FFFFFF` `#5E5E5E` `#454545` `#1C1C1C` `#000000`,
+  границы `#BFBFBF`, неактивные элементы `#8F8F8F`.
+- Кнопки и поля: 71 px высоты, без скруглений, обводка 2 px.
+
+Осознанные отклонения:
+
+- Логотип в макете вписан в бокс 128×65 в режиме STRETCH, из-за чего сжимается
+  по вертикали. Мы сохраняем высоту 65 px и естественные пропорции.
+- В макете нет корзины, оформления заказа, страниц «О бренде», «Контакты»,
+  Lookbook, пустых состояний, hover- и мобильных состояний — они сделаны
+  в дизайн-системе макета.
+- Сортировка каталога в макете отсутствует; добавлена в строке фильтров.
+
+## Данные
+
+Пользователь: имя, e-mail (уникальный), телефон, scrypt-хеш пароля. В личном
+кабинете заказы подтягиваются по e-mail — оформить заказ можно и без аккаунта.
+
+Товар → изображения (порядок), варианты (размер + цвет + остаток), категория.
+Категории двухуровневые: корневые — разделы в шапке, вложенные — вкладки
+каталога. Цены хранятся в копейках (`Int`), в заказе название и цена
+фиксируются снимком, поэтому заказ не меняется при редактировании товара.
+
+Заказ создаётся через `POST /api/orders`: цены и остатки берутся из БД,
+количество проверяется, склад списывается в транзакции — перепродать нельзя.
+
+## Админка
+
+- **Товары** — поиск, фильтры по категории/остаткам/видимости, создание,
+  редактирование, удаление, скрытие с сайта, остатки по размерам и цветам,
+  загрузка фото или ссылки.
+- **Категории** — CRUD, вложенность, порядок сортировки.
+- **Заказы** — список с фильтром по статусу и поиском по покупателю, карточка
+  заказа, смена статуса: новый → в обработке → отправлен → доставлен / отмена.
+- **Дашборд** — выручка, число заказов, средний чек за день / неделю / месяц /
+  всё время, график продаж, топ товаров, разрез по категориям и статусам.
+
+Доступ закрыт `proxy.ts` (проверка подписанной куки) и повторной проверкой
+сессии внутри каждого server action.
+
+## Деплой
+
+1. Задайте `ADMIN_LOGIN`, `ADMIN_PASSWORD` и случайный `SESSION_SECRET`.
+2. Для managed-хостинга (например, Vercel) SQLite не подойдёт: переключите
+   `datasource` в `prisma/schema.prisma` на `postgresql`, замените адаптер в
+   `lib/prisma.ts` на `@prisma/adapter-pg` и выполните `prisma migrate deploy`.
+3. Загрузка фото в админке пишет файлы в `public/uploads` — это работает
+   локально и на VPS. На хостинге с read-only ФС подключите объектное
+   хранилище и замените тело `uploadImage` в `app/admin/actions.ts`.
