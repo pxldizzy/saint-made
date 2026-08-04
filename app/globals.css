@@ -202,3 +202,40 @@ body {
     transform: scaleY(1);
   }
 }
+
+/* Dual price slider: two stacked range inputs, only the thumbs catch events.
+   Macket draws the handles as 15px vertical ticks; widened to 6px to grab. */
+.range-track {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  height: 15px;
+  margin: 0;
+}
+.range-track:focus {
+  outline: none;
+}
+.range-track::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 6px;
+  height: 15px;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-ink);
+  pointer-events: auto;
+  cursor: ew-resize;
+}
+.range-track::-moz-range-thumb {
+  width: 6px;
+  height: 15px;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-ink);
+  pointer-events: auto;
+  cursor: ew-resize;
+}
+.range-track:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px var(--color-line);
+}

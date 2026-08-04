@@ -1,13 +1,15 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { GridFourIcon, GridSixIcon, PlusIcon } from "@/components/icons";
 
 export type FilterOptions = {
   types: { slug: string; name: string }[];
   colors: { name: string; hex: string }[];
   sizes: string[];
+  /** Real price range of the catalogue, in roubles. */
+  minPrice: number;
   maxPrice: number;
 };
 
@@ -71,6 +73,35 @@ export default function CatalogControls({ options }: { options: FilterOptions })
       </span>
     </label>
   );
+
+  // Price range: starts at the cheapest and ends at the most expensive product.
+  const { minPrice, maxPrice } = options;
+  const clamp = (n: number) => Math.min(Math.max(n, minPrice), maxPrice);
+  const from = clamp(Number(params.get("min")) || minPrice);
+  const to = clamp(Number(params.get("max")) || maxPrice);
+  const [range, setRange] = useState<[number, number]>([from, to]);
+  // The committed value is read from a ref: pointerup can fire before React
+  // re-renders, and a stale closure would push the previous bounds.
+  const rangeRef = useRef<[number, number]>([from, to]);
+  const span = Math.max(maxPrice - minPrice, 1);
+  const pct = (v: number) => ((v - minPrice) / span) * 100;
+
+  const commitRange = ([lo, hi]: [number, number]) =>
+    push((p) => {
+      if (lo > minPrice) p.set("min", String(lo));
+      else p.delete("min");
+      if (hi < maxPrice) p.set("max", String(hi));
+      else p.delete("max");
+    });
+
+  const setBound = (index: 0 | 1, value: number) => {
+    const next: [number, number] = [...range];
+    next[index] = clamp(value);
+    if (next[0] > next[1]) next[index === 0 ? 1 : 0] = next[index];
+    rangeRef.current = next;
+    setRange(next);
+    return next;
+  };
 
   const legendClass =
     "mb-[20px] text-[clamp(14px,1.04vw,20px)] leading-[1.366] font-extrabold text-graphite uppercase";
@@ -176,41 +207,57 @@ export default function CatalogControls({ options }: { options: FilterOptions })
               <legend className={legendClass}>
                 По стоимости
               </legend>
-              <div className="flex flex-wrap items-center gap-[30px]">
-                <label className="flex flex-col">
-                  <span className="sr-only">Цена от</span>
-                  <input
-                    type="number"
-                    min={0}
-                    defaultValue={params.get("min") ?? ""}
-                    placeholder="0,00"
-                    onBlur={(e) =>
-                      push((p) =>
-                        e.target.value
-                          ? p.set("min", e.target.value)
-                          : p.delete("min"),
-                      )
-                    }
-                    className="h-[42px] w-[110px] border-2 border-graphite px-[10px] text-[16px] leading-[21.9px] font-semibold text-graphite focus:border-ink focus:outline-none xl:w-[120px]"
-                  />
-                </label>
-                <label className="flex flex-col">
-                  <span className="sr-only">Цена до</span>
-                  <input
-                    type="number"
-                    min={0}
-                    defaultValue={params.get("max") ?? ""}
-                    placeholder={String(options.maxPrice)}
-                    onBlur={(e) =>
-                      push((p) =>
-                        e.target.value
-                          ? p.set("max", e.target.value)
-                          : p.delete("max"),
-                      )
-                    }
-                    className="h-[42px] w-[110px] border-2 border-graphite px-[10px] text-[16px] leading-[21.9px] font-semibold text-graphite focus:border-ink focus:outline-none xl:w-[120px]"
-                  />
-                </label>
+
+              {/* Macket: 270px track at y=372 with 15px ticks at both ends,
+                  two 120x42 fields below. The range spans the real prices. */}
+              <div className="relative h-[15px] w-full max-w-[270px]">
+                <span className="absolute top-1/2 h-[2px] w-full -translate-y-1/2 bg-line" />
+                <span
+                  className="absolute top-1/2 h-[2px] -translate-y-1/2 bg-ink"
+                  style={{ left: `${pct(range[0])}%`, right: `${100 - pct(range[1])}%` }}
+                />
+                <input
+                  type="range"
+                  aria-label="Цена от"
+                  min={minPrice}
+                  max={maxPrice}
+                  value={range[0]}
+                  onChange={(e) => setBound(0, Number(e.target.value))}
+                  onPointerUp={() => commitRange(rangeRef.current)}
+                  onKeyUp={() => commitRange(rangeRef.current)}
+                  onBlur={() => commitRange(rangeRef.current)}
+                  className="range-track absolute inset-0 w-full"
+                />
+                <input
+                  type="range"
+                  aria-label="Цена до"
+                  min={minPrice}
+                  max={maxPrice}
+                  value={range[1]}
+                  onChange={(e) => setBound(1, Number(e.target.value))}
+                  onPointerUp={() => commitRange(rangeRef.current)}
+                  onKeyUp={() => commitRange(rangeRef.current)}
+                  onBlur={() => commitRange(rangeRef.current)}
+                  className="range-track absolute inset-0 w-full"
+                />
+              </div>
+
+              <div className="mt-[24px] flex flex-wrap items-center gap-[30px]">
+                {([0, 1] as const).map((i) => (
+                  <label key={i} className="flex flex-col">
+                    <span className="sr-only">{i === 0 ? "Цена от" : "Цена до"}</span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={minPrice}
+                      max={maxPrice}
+                      value={range[i]}
+                      onChange={(e) => setBound(i, Number(e.target.value))}
+                      onBlur={() => commitRange(rangeRef.current)}
+                      className="h-[42px] w-[110px] border-2 border-graphite px-[10px] text-center text-[16px] leading-[21.9px] font-semibold text-graphite focus:border-ink focus:outline-none xl:w-[120px]"
+                    />
+                  </label>
+                ))}
               </div>
             </fieldset>
           </div>

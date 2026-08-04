@@ -84,8 +84,16 @@ export default async function CatalogPage({
             },
           }
         : {}),
-      ...(min ? { price: { gte: min * 100 } } : {}),
-      ...(max ? { price: { lte: max * 100 } } : {}),
+      // Both bounds live in one `price` object — two spreads would overwrite
+      // each other and silently drop the lower bound.
+      ...(min || max
+        ? {
+            price: {
+              ...(min ? { gte: min * 100 } : {}),
+              ...(max ? { lte: max * 100 } : {}),
+            },
+          }
+        : {}),
     },
     orderBy:
       sort === "price-asc"
@@ -96,7 +104,7 @@ export default async function CatalogPage({
     select: productCardSelect,
   })) as ProductCardData[];
 
-  const [colorRows, sizeRows, priceMax] = await Promise.all([
+  const [colorRows, sizeRows, priceBounds] = await Promise.all([
     prisma.variant.findMany({
       distinct: ["color"],
       select: { color: true, colorHex: true },
@@ -106,7 +114,11 @@ export default async function CatalogPage({
       distinct: ["size"],
       select: { size: true },
     }),
-    prisma.product.aggregate({ _max: { price: true } }),
+    prisma.product.aggregate({
+      where: { isHidden: false },
+      _max: { price: true },
+      _min: { price: true },
+    }),
   ]);
 
   const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL"];
@@ -118,7 +130,8 @@ export default async function CatalogPage({
     sizes: sizeRows
       .map((s) => s.size.toUpperCase())
       .sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b)),
-    maxPrice: Math.round((priceMax._max.price ?? 0) / 100),
+    minPrice: Math.floor((priceBounds._min.price ?? 0) / 100),
+    maxPrice: Math.ceil((priceBounds._max.price ?? 0) / 100),
   };
 
   const gridClass =
