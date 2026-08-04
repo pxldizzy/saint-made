@@ -65,12 +65,13 @@ export default function Footer() {
           </ul>
         </nav>
 
-        <div className="flex h-full flex-col">
-          <p className="text-column-title max-w-[420px] text-graphite">
+        {/* Icons are centred against the paragraph above, not the whole column. */}
+        <div className="flex h-full max-w-[420px] flex-col">
+          <p className="text-column-title text-graphite">
             Подпишитесь чтобы получать обновления, доступ к эксклюзивным
             предложениям и многому другому.
           </p>
-          <ul className="mt-[57px] flex gap-[30px] xl:justify-center">
+          <ul className="mt-[57px] flex justify-center gap-[30px]">
             {socials.map(({ href, label, Icon }) => (
               <li key={label}>
                 <a
@@ -91,7 +92,7 @@ export default function Footer() {
             single line never grows wider than the subscribe block above it. */}
         <div className="@container flex h-full max-w-[420px] flex-col">
           <NewsletterForm />
-          <p className="mt-[40px] text-[min(14px,4cqi)] leading-[1.366] font-bold whitespace-nowrap text-ash xl:mt-auto xl:text-center">
+          <p className="mt-[40px] text-[min(14px,4cqi)] leading-[1.366] font-bold whitespace-nowrap text-ash text-center xl:mt-auto">
             © 2022 - {new Date().getFullYear()} SaintMade - All rights reserved
           </p>
         </div>
