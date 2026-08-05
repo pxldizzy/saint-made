@@ -39,10 +39,6 @@ export default function RegisterPage() {
             />
           </label>
 
-          <p className="text-center text-[14px] leading-[19.1px] font-semibold text-muted uppercase">
-            Укажите e-mail или телефон — по нему вы будете входить
-          </p>
-
           <label className="block">
             <span className="sr-only">E-mail</span>
             <input
