@@ -15,12 +15,10 @@ export default async function AccountLayout({
 
   return (
     <div className="container-sm pt-[120px]">
-      <div className="flex flex-wrap items-baseline justify-between gap-[20px]">
-        <h1 className="text-h2 uppercase">Личный кабинет</h1>
-        <p className="text-body text-ash uppercase">{user.name}</p>
-      </div>
+      <h1 className="text-h2 uppercase">Личный кабинет</h1>
 
-      <div className="mt-[50px] grid gap-[30px] xl:grid-cols-[270px_minmax(0,1fr)] xl:gap-[120px]">
+      {/* Site grid: nav takes one 420 column, content the other three. */}
+      <div className="mt-[50px] grid gap-[30px] xl:grid-cols-[420fr_1320fr]">
         <AccountNav />
         <div className="min-w-0">{children}</div>
       </div>

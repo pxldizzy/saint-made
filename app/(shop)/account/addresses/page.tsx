@@ -22,7 +22,7 @@ export default async function AccountAddressesPage() {
       </p>
 
       {addresses.length > 0 && (
-        <ul className="mt-[30px] grid gap-[20px] sm:grid-cols-2">
+        <ul className="mt-[30px] grid gap-[30px] sm:grid-cols-2">
           {addresses.map((address) => (
             <li
               key={address.id}

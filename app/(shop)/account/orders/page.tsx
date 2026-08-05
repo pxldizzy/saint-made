@@ -30,7 +30,7 @@ export default async function AccountOrdersPage({
 
       {counts.length > 0 && (
         <nav aria-label="Фильтр по статусу" className="mt-[24px]">
-          <ul className="flex flex-wrap gap-[20px]">
+          <ul className="flex flex-wrap gap-[30px]">
             <li>
               <Link
                 href="/account/orders"
@@ -71,7 +71,7 @@ export default async function AccountOrdersPage({
           </Link>
         </div>
       ) : (
-        <div className="mt-[30px] flex flex-col gap-[20px]">
+        <div className="mt-[30px] flex flex-col gap-[30px]">
           {orders.map((order) => (
             <OrderCard key={order.id} order={order} />
           ))}
