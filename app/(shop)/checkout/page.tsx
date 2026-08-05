@@ -18,6 +18,7 @@ export default async function CheckoutPage() {
           city: true,
           street: true,
           apartment: true,
+          comment: true,
           isDefault: true,
         },
       })

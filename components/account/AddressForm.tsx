@@ -15,9 +15,17 @@ export type AddressValues = {
   city: string;
   street: string;
   apartment: string;
+  comment: string;
 };
 
-const EMPTY: AddressValues = { id: "", title: "", city: "", street: "", apartment: "" };
+const EMPTY: AddressValues = {
+  id: "",
+  title: "",
+  city: "",
+  street: "",
+  apartment: "",
+  comment: "",
+};
 
 export default function AddressForm({
   address,
@@ -67,6 +75,16 @@ export default function AddressForm({
         <label className="flex flex-col gap-[8px]">
           <span className={label}>Квартира</span>
           <input name="apartment" defaultValue={values.apartment} className={field} />
+        </label>
+        <label className="flex flex-col gap-[8px]">
+          <span className={label}>Комментарий</span>
+          <textarea
+            name="comment"
+            defaultValue={values.comment}
+            rows={3}
+            placeholder="Домофон, подъезд, этаж, пожелания курьеру"
+            className="w-full border-2 border-graphite p-[16px] text-[16px] leading-[21.9px] font-semibold text-graphite transition-colors duration-300 placeholder:text-ash focus:border-ink focus:outline-none"
+          />
         </label>
 
         {(state.error || state.ok) && (

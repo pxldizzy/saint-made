@@ -51,6 +51,10 @@ export default async function AccountAddressesPage() {
                   .join(", ")}
               </p>
 
+              {address.comment && (
+                <p className="text-body mt-[8px] text-ash">{address.comment}</p>
+              )}
+
               <div className="mt-[20px] flex flex-wrap gap-[20px]">
                 {!address.isDefault && (
                   <form action={setDefaultAddress}>

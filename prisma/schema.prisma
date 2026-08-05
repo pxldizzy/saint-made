@@ -29,6 +29,8 @@ model Address {
   city      String
   street    String
   apartment String   @default("")
+  /// Домофон, подъезд, этаж — попадает в комментарий к заказу.
+  comment   String   @default("")
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
 

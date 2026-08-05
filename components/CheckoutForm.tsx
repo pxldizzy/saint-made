@@ -14,6 +14,7 @@ export type CheckoutAddress = {
   city: string;
   street: string;
   apartment: string;
+  comment: string;
   isDefault: boolean;
 };
 
@@ -177,6 +178,8 @@ export default function CheckoutForm({
             <span className="text-body font-bold uppercase">Комментарий</span>
             <textarea
               name="comment"
+              key={`comment-${addressId}`}
+              defaultValue={selected?.comment ?? ""}
               rows={4}
               className={`${field} h-auto py-[20px]`}
               placeholder="Пожелания к доставке"

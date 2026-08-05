@@ -117,6 +117,7 @@ export async function saveAddress(
     city,
     street,
     apartment: str(formData, "apartment", 40),
+    comment: str(formData, "comment", 500),
   };
 
   const count = await prisma.address.count({ where: { userId: user.id } });
