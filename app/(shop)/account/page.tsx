@@ -32,7 +32,8 @@ export default async function AccountOverviewPage() {
     <div>
       <h2 className="text-h3 uppercase">Здравствуйте, {user.name.split(" ")[0]}</h2>
 
-      <dl className="mt-[30px] grid gap-[30px] sm:grid-cols-2 xl:grid-cols-4">
+      {/* Four tiles only when they stay roomy; two columns before that. */}
+      <dl className="mt-[30px] grid gap-[30px] sm:grid-cols-2 2xl:grid-cols-4">
         {tiles.map((tile) => (
           <div key={tile.label} className="border-2 border-graphite p-[20px]">
             <dt className="text-[14px] leading-[19.1px] text-ash uppercase">

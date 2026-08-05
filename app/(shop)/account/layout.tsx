@@ -17,9 +17,13 @@ export default async function AccountLayout({
     <div className="container-sm pt-[120px]">
       <h1 className="text-h2 uppercase">Личный кабинет</h1>
 
-      {/* Site grid: nav takes one 420 column, content the other three. */}
-      <div className="mt-[50px] grid gap-[30px] xl:grid-cols-[420fr_1320fr]">
-        <AccountNav />
+      {/* Sidebar 300 + 60 gutter leaves 1410 for content — exactly four
+          330px tiles with the site's 30px gutters. */}
+      <div className="mt-[50px] grid gap-[30px] xl:grid-cols-[300px_minmax(0,1fr)] xl:gap-x-[60px]">
+        {/* Optical offset: aligns the first link with the section heading. */}
+        <div className="xl:pt-[14px]">
+          <AccountNav />
+        </div>
         <div className="min-w-0">{children}</div>
       </div>
     </div>
