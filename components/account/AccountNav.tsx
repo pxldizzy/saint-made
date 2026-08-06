@@ -11,13 +11,13 @@ const LINKS = [
   { href: "/account/profile", label: "Профиль" },
 ];
 
-/** Sidebar on desktop, a scrollable row on narrow screens. */
+/** Horizontal tabs under the page title; scrolls sideways on narrow screens. */
 export default function AccountNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Разделы кабинета">
-      <ul className="flex gap-x-[30px] gap-y-[20px] overflow-x-auto pb-[10px] xl:flex-col xl:overflow-visible xl:pb-0">
+    <nav aria-label="Разделы кабинета" className="border-b border-line">
+      <ul className="-mb-px flex items-center gap-[40px] overflow-x-auto">
         {LINKS.map((link) => {
           const active = link.exact
             ? pathname === link.href
@@ -26,10 +26,11 @@ export default function AccountNav() {
             <li key={link.href} className="shrink-0">
               <Link
                 href={link.href}
-                data-active={active}
                 aria-current={active ? "page" : undefined}
-                className={`link-underline text-[20px] leading-[27.3px] font-bold whitespace-nowrap uppercase transition-colors duration-300 hover:text-graphite ${
-                  active ? "text-graphite" : "text-ash"
+                className={`block border-b-2 pb-[16px] text-[20px] leading-[27.3px] font-bold whitespace-nowrap uppercase transition-colors duration-300 ${
+                  active
+                    ? "border-graphite text-graphite"
+                    : "border-transparent text-ash hover:text-graphite"
                 }`}
               >
                 {link.label}
@@ -37,11 +38,12 @@ export default function AccountNav() {
             </li>
           );
         })}
-        <li className="shrink-0 xl:mt-[20px] xl:border-t xl:border-line xl:pt-[20px]">
+
+        <li className="ml-auto shrink-0 pl-[40px]">
           <form action="/api/auth/logout" method="post">
             <button
               type="submit"
-              className="link-underline text-[20px] leading-[27.3px] font-bold whitespace-nowrap text-ash uppercase transition-colors duration-300 hover:text-ink"
+              className="block border-b-2 border-transparent pb-[16px] text-[20px] leading-[27.3px] font-bold whitespace-nowrap text-ash uppercase transition-colors duration-300 hover:text-ink"
             >
               Выйти
             </button>

@@ -15,17 +15,14 @@ export default async function AccountLayout({
 
   return (
     <div className="container-sm pt-[120px]">
+      {/* Title, tabs and content share one left edge — nothing is indented. */}
       <h1 className="text-h2 uppercase">Личный кабинет</h1>
 
-      {/* Sidebar 300 + 60 gutter leaves 1410 for content — exactly four
-          330px tiles with the site's 30px gutters. */}
-      <div className="mt-[50px] grid gap-[30px] xl:grid-cols-[300px_minmax(0,1fr)] xl:gap-x-[60px]">
-        {/* Optical offset: aligns the first link with the section heading. */}
-        <div className="xl:pt-[14px]">
-          <AccountNav />
-        </div>
-        <div className="min-w-0">{children}</div>
+      <div className="mt-[40px]">
+        <AccountNav />
       </div>
+
+      <div className="mt-[50px]">{children}</div>
     </div>
   );
 }
